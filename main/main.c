@@ -21,6 +21,9 @@ static EventGroupHandle_t wifi_event_group;
 const int CONNECTED_BIT = BIT0;
 const int DISCONNECTED_BIT = BIT1;
 
+const wifi_bandwidth_t  CURRENT_BW = WIFI_BW_HT20;
+const uint8_t  CURRENT_CHANNEL = 1;
+
 
 static void wifi_connected_handler(void *arg, esp_event_base_t event_base,
                                    int32_t event_id, void *event_data)
@@ -73,6 +76,8 @@ void initialise_wifi(void)
                     NULL));
     ESP_ERROR_CHECK(esp_wifi_set_storage(WIFI_STORAGE_RAM) );
     ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_NULL) );
+
+    ESP_ERROR_CHECK(esp_wifi_set_bandwidth(ESP_IF_WIFI_AP, CURRENT_BW));
     ESP_ERROR_CHECK(esp_wifi_start() );
     initialized = true;
 }
@@ -86,7 +91,9 @@ static bool start_wifi_ap(const char* ssid, const char* pass)
             .ssid_len = 0,
             .max_connection = 4,
             .password = "",
-            .authmode = WIFI_AUTH_WPA2_PSK
+            .authmode = WIFI_AUTH_WPA2_PSK,
+            .channel = CURRENT_CHANNEL
+
         },
     };
 
@@ -110,6 +117,8 @@ void app_main(void)
     uint8_t mac[6];
     char mac_add[17];
 
+    wifi_bandwidth_t bw;
+
     esp_err_t ret = nvs_flash_init();
     if (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND) {
         ESP_ERROR_CHECK(nvs_flash_erase());
@@ -127,7 +136,21 @@ void app_main(void)
     ESP_ERROR_CHECK(esp_base_mac_addr_get(&mac[0]));
     sprintf(&mac_add[0],"ftm_%02X%02X%02X%02X%02X%02X",(unsigned char)mac[0], (unsigned char)mac[1], (unsigned char)mac[2], (unsigned char)mac[3], (unsigned char)mac[4],(unsigned char)mac[5]);
 
+
     //Start AP
     start_wifi_ap(mac_add, "ftmftmftmftm");
+
+    ESP_ERROR_CHECK(esp_wifi_get_bandwidth(ESP_IF_WIFI_AP, &bw));
+
+    if (bw==WIFI_BW_HT20){
+        printf("BW = 20Mhz\n");
+    } else {
+        printf("BW = 40Mhz\n");
+    }
+
     printf("Starting SoftAP with FTM Responder support, SSID - %s\n", mac_add);
+
+
+
+
 }
