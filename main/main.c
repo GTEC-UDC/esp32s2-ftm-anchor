@@ -12,6 +12,7 @@
 #include "esp_err.h"
 #include "esp_wifi.h"
 #include "esp_console.h"
+#include "esp_mac.h"
 
 
 static bool s_reconnect = true;
@@ -21,8 +22,8 @@ static EventGroupHandle_t wifi_event_group;
 const int CONNECTED_BIT = BIT0;
 const int DISCONNECTED_BIT = BIT1;
 
-const wifi_bandwidth_t  CURRENT_BW = WIFI_BW_HT20;
-const uint8_t  CURRENT_CHANNEL = 1;
+const wifi_bandwidth_t  CURRENT_BW = WIFI_BW_HT40;
+const uint8_t  CURRENT_CHANNEL = 6;
 
 
 static void wifi_connected_handler(void *arg, esp_event_base_t event_base,
@@ -30,7 +31,7 @@ static void wifi_connected_handler(void *arg, esp_event_base_t event_base,
 {
     wifi_event_sta_connected_t *event = (wifi_event_sta_connected_t *)event_data;
 
-    ESP_LOGI(TAG_ANCHOR, "Connected to %s (BSSID: "MACSTR", Channel: %d)", event->ssid,
+    ESP_LOGI(TAG_ANCHOR, "Connected to %s (BSSID: " MACSTR ", Channel: %d)", event->ssid,
              MAC2STR(event->bssid), event->channel);
 
     xEventGroupClearBits(wifi_event_group, DISCONNECTED_BIT);
@@ -92,7 +93,8 @@ static bool start_wifi_ap(const char* ssid, const char* pass)
             .max_connection = 4,
             .password = "",
             .authmode = WIFI_AUTH_WPA2_PSK,
-            .channel = CURRENT_CHANNEL
+            .channel = CURRENT_CHANNEL,
+            .ftm_responder = true
 
         },
     };

@@ -4,6 +4,9 @@
         "interface/ftdi/esp32_devkitj_v1.cfg",
         "target/esp32s2.cfg"
     ],
-    "idf.port": "/dev/ttyUSB0",
-    "idf.flashType": "UART"
+    "idf.port": "/dev/ttyACM0",
+    "idf.flashType": "UART",
+    "idf.customExtraVars": {
+        "IDF_TARGET": "esp32s2"
+    }
 }
